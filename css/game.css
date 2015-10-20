@@ -5,6 +5,8 @@
 .background td { padding: 0; }
 .lava          { background: #2C2D3A; }
 .wall          { background: #7D938A;   }
+.picture {
+		background-image: url(https://40.media.tumblr.com/372232eb4d9d32acd6d50266c2da2d12/tumblr_nwjaubtCcv1uy33o1o1_500.png);}
 .fire     { background-image: url(https://41.media.tumblr.com/58c691be52f6e8cae1760a2eed2efb5b/tumblr_nwdslnQsUh1sd943no2_r1_75sq.png);   }
 .game {
   position: relative;
@@ -17,3 +19,14 @@
 .player { background-image: url(https://40.media.tumblr.com/d032bcd28a65fef98869c51809f7ab73/tumblr_nwdslnQsUh1sd943no1_75sq.png); }
 .coin   { background: grey; }
 .enemy {background: #0F070D;}
+.lost .player {
+  background-image:url(https://40.media.tumblr.com/151db97e5aeb3ae05659db9e30412f5d/tumblr_nwj2wlG0Bf1uy33o1o1_75sq.png);
+}
+.won .player {
+background-image:url(https://40.media.tumblr.com/c2442af375030431900a96f145d40622/tumblr_nwj2wlG0Bf1uy33o1o4_75sq.png);
+  }
+ .shooter{background: yellow;}
+ .bad{background: black;}
+ .bubble {background: green;}
+ 
+ 

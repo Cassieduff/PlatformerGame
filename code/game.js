@@ -1,8 +1,12 @@
 var actorChars = {
   "@": Player,
   "o": Coin,
-  "E": Enemy
- 
+  "E": Enemy,
+  "=": Lava, "|": Lava, "v": Lava,
+  'n': Picture,
+  's': Shooter,
+  'b': Bubble, 'd': Bubble 
+  
 };
 
 function Level(plan){
@@ -25,6 +29,8 @@ function Level(plan){
 
 			else if (ch == "x")
 				fieldType = 'wall';
+			else if(ch =='e')
+				fieldType = 'bad';
 			else if(ch === '!')
 				fieldType = 'lava';
 			else if(ch === 'f')
@@ -74,14 +80,60 @@ function Coin(pos) {
 Coin.prototype.type = "coin";
 
 function Enemy(pos){
-  this.basePos = this.pos = pos.plus(new Vector(1, 0));
+  this.pos = pos;
   this.size = new Vector(0.9, 1);
-  
-  
-  this.move=1;
-	
+  this.speed = new Vector(3,0);
+ 
 }
 Enemy.prototype.type = "enemy";
+
+function Lava(pos, ch) {
+  this.pos = pos;
+  this.size = new Vector(1, 1);
+  if (ch == "=") {
+    // Horizontal lava
+    this.speed = new Vector(2, 0);
+  } else if (ch == "|") {
+    // Vertical lava
+    this.speed = new Vector(0, 2);
+  } else if (ch == "v") {
+    // Drip lava. Repeat back to this pos.
+    this.speed = new Vector(0, 3);
+    this.repeatPos = pos;
+  }
+}
+Lava.prototype.type = "lava";
+
+function Picture(pos){
+this.basePos = this.pos = pos.plus(new Vector(0.2, 0.1));
+this.wobble = Math.random() * Math.PI * 2;
+this.size= new Vector(20,15);
+}
+Picture.prototype.type = 'picture';
+
+function Shooter(pos){
+this.pos=pos;
+this.size= new Vector(0.5,0.5);
+this.speed = new Vector(2,0);
+this.repeatPos = pos;
+
+}
+Shooter.prototype.type= 'shooter';
+
+function Bubble(pos, ch){
+this.pos=pos;
+this.size= new Vector(0.7,.5);
+
+if(ch == 'b'){
+	this.speed=new Vector(0,-3);
+	this.repeatPos=pos;
+}
+else if(ch=='d'){
+	this.speed= new Vector(0,3);
+	this.repeatPos=pos;
+}
+}
+Bubble.prototype.type='bubble';
 
 function elt(name, className){
 	var elt = document.createElement(name);
@@ -107,7 +159,7 @@ DOMDisplay.prototype.drawActors = function() {
 		this.level.actors.forEach(function(actor) {
 		var rect = wrap.appendChild(elt("div",
                                     "actor " + actor.type));
-									console.log(rect);
+									
    rect.style.width = actor.size.x * scale + "px";
     rect.style.height = actor.size.y * scale + "px";
     rect.style.left = actor.pos.x * scale + "px";
@@ -238,8 +290,14 @@ Coin.prototype.act = function(step) {
 };
 
 Enemy.prototype.act=function(step, level) {
-
-this.move += step * moveSpeed;
+var newPos = this.pos.plus(this.speed.times(step));
+	if(!level.obstacleAt(newPos, this.size))
+    this.pos = newPos;
+  
+  else
+    this.speed = this.speed.times(-1);
+};
+/* this.move += step * moveSpeed;
 var movePos = this.move * moveDist;
 var newPos = this.basePos.plus(new Vector(movePos,0));
 if(!level.obstacleAt(newPos, this.size))
@@ -248,10 +306,44 @@ else
 	moveSpeed = moveSpeed*(-1);
 
 
+}; */
+
+Lava.prototype.act = function(step, level) {
+  var newPos = this.pos.plus(this.speed.times(step));
+  if (!level.obstacleAt(newPos, this.size))
+    this.pos = newPos;
+  else if (this.repeatPos)
+    this.pos = this.repeatPos;
+  else
+    this.speed = this.speed.times(-1);
+};
+
+Shooter.prototype.act = function(step,level){
+
+var newPos=this.pos.plus(this.speed.times(step));
+if(!level.obstacleAt(newPos, this.size))
+	this.pos = newPos;
+else if(this.repeatPos)
+	this.pos = this.repeatPos;
 };
 
 var maxStep = 0.05;
  var playerXSpeed = 7;
+ 
+Picture.prototype.act = function(step){
+	this.wobble += step * wobbleSpeed;
+  var wobblePos = Math.sin(this.wobble) * wobbleDist;
+  this.pos = this.basePos.plus(new Vector(0, wobblePos));
+};
+
+Bubble.prototype.act=function(step, level){
+	var newPos=this.pos.plus(this.speed.times(step));
+	if(!level.obstacleAt(newPos,this.size))
+		this.pos = newPos;
+	else if(this.repeatPos)
+		this.pos=this.repeatPos;
+	
+	};
 
  Player.prototype.moveX = function(step, level, keys) {
    this.speed.x = 0;
@@ -262,16 +354,13 @@ var maxStep = 0.05;
   var newPos = this.pos.plus(motion);
   var obstacle = level.obstacleAt(newPos, this.size);
 
- /* if((obstacle!="wall") &&(obstacle!='fire'))
-    this.pos = newPos;
-	*/
-	if (obstacle)
+	
+	 if (obstacle)
 		level.playerTouched(obstacle);
    else
 		this.pos=newPos;
 		
- if(obstacle === 'fire')
-	this.pos=new Vector(3,15);
+ 
  };
  
  //change these numbers for different mechanics-
@@ -288,19 +377,7 @@ Player.prototype.moveY = function(step, level, keys) {
    //change so they can't jump off of lava
    //you subtract jump speed in order to get closer to 0 in the y direction which is up
    //you add gravity to get closer to the bottom
-  /* if (obstacle==='wall') {
-    if (keys.up && this.speed.y > 0)
-      this.speed.y = -jumpSpeed;
-    else
-      this.speed.y = 0;
-  } else if(obstacle==='lava'){
-		
-		this.pos= new Vector(3,15);
-		
-  }
-  else if(obstacle==='fire'){
-	this.pos= new Vector(3,15);
-	} */
+  
 	if(obstacle){
 	level.playerTouched(obstacle);
 	if (keys.up && this.speed.y > 0)
@@ -333,7 +410,29 @@ Level.prototype.playerTouched = function(type, actor) {
  if (type == "lava" && this.status == null) {
     this.status = "lost";
     this.finishDelay = 1;
-  } else if (type == "coin") {
+  }
+  else if(type =='bad' && this.status==null){
+    this.status = "lost";
+    this.finishDelay = 1;
+  }
+else if(type == 'enemy' && this.status== null){
+	this.status = "lost";
+    this.finishDelay = 1;
+}
+else if(type == 'fire' && this.status== null){
+	this.status = "lost";
+	this.finishDelay = 1;
+}
+else if(type == 'shooter' && this.status==null) {
+	this.status ="lost";
+	this.finishDelay = 1;
+}
+else if(type == 'bubble' && this.status== null){
+	this.status = "lost";
+	this.finishDelay = 1;
+}
+
+  else if (type == "coin") {
     this.actors = this.actors.filter(function(other) {
       return other != actor;
 	  
@@ -346,13 +445,7 @@ Level.prototype.playerTouched = function(type, actor) {
     }
 	
   }
-  else if (type == 'enemy') {
-	 this.actors=this.actors.filter(function(other) {
-		return other != actor;
-		
-		});
-	  
-	  }
+  
   
 };
 var arrowCodes = {37: "left", 38: "up", 39: "right"};

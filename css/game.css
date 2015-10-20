@@ -1,0 +1,19 @@
+.background    { background: #377376;
+                 table-layout: fixed;
+                 border-spacing: 0;
+				}
+.background td { padding: 0; }
+.lava          { background: #2C2D3A; }
+.wall          { background: #7D938A;   }
+.fire     { background-image: url(https://41.media.tumblr.com/58c691be52f6e8cae1760a2eed2efb5b/tumblr_nwdslnQsUh1sd943no2_r1_75sq.png);   }
+.game {
+  position: relative;
+  overflow: hidden;
+  max-width: 600px;
+  max-height: 450px;
+  border: dashed 3px;
+}
+.actor  { position: absolute;  }
+.player { background-image: url(https://40.media.tumblr.com/d032bcd28a65fef98869c51809f7ab73/tumblr_nwdslnQsUh1sd943no1_75sq.png); }
+.coin   { background: grey; }
+.enemy {background: #0F070D;}
